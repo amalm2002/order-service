@@ -25,13 +25,11 @@ export class OrderRepository implements IOrderRepository {
         try {
             const orderId = data.orderId
             const orderStatus = data.orderStatus
-            // console.log('order status :', orderStatus);
             const result = await OrderModel.findByIdAndUpdate(
                 orderId,
                 { $set: { orderStatus } },
                 { new: true }
             );
-            // console.log(result, '----------------- ');
             return result;
         } catch (error) {
             throw new Error(`Failed to chnage the order status: ${(error as Error).message}`);
@@ -53,17 +51,11 @@ export class OrderRepository implements IOrderRepository {
 
     async getOrderDetails(data: { orderId: string; }): Promise<any> {
         try {
-            // console.log('helooooooooooo ');
-
             const order_id = data.orderId
-            console.log('order id :', order_id);
-
             const result = await OrderModel.findById(order_id)
             if (!result) {
                 return { success: false, error: 'Order Is Not Found' }
             }
-            // console.log(result, '==============================');
-
             return { success: true, data: result }
         } catch (error) {
             throw new Error(`Failed to fetch the user order: ${(error as Error).message}`);
