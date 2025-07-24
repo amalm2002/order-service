@@ -1,8 +1,5 @@
 import { OrderController } from '../../controller/implementations/order.controller';
 import RabbitMQClient from './client';
-import { CreateOrderDto } from '../../dto/create.order.dto';
-import { VerifyPaymentDto } from '../../dto/verify-payment.dto';
-import { PlaceOrderDto } from '../../dto/place-order.dto';
 
 export class MessageHandler {
     static async handle(
@@ -20,15 +17,15 @@ export class MessageHandler {
         console.log('Operation:', operation, 'Data:', data);
 
         switch (operation) {
-            case 'Create-Order':
-                response = await orderController.createOrder(data as CreateOrderDto);
-                break;
-            case 'Verify-Payment':
-                response = await orderController.verifyPayment(data as VerifyPaymentDto);
-                break;
-            case 'Place-Order':
-                response = await orderController.placeOrder(data as PlaceOrderDto);
-                break;
+            // case 'Create-Order':
+            //     response = await orderController.createOrder(data as CreateOrderDto);
+            //     break;
+            // case 'Verify-Payment':
+            //     response = await orderController.verifyPayment(data as VerifyPaymentDto);
+            //     break;
+            // case 'Place-Order':
+            //     response = await orderController.placeOrder(data as PlaceOrderDto);
+            //     break;
             case 'Get-All-Restaurant-Orders':
                 response = await orderController.getAllRestaurantOrders(data);
                 break;
@@ -58,6 +55,12 @@ export class MessageHandler {
                 break;
             case 'Get-Delivery-Partner-Orders':
                 response = await orderController.getDeliveryPartnerOrders(data);
+                break;
+            case 'Create-COD-Order':
+                response = await orderController.createCashOnDeliveryOrder(data);
+                break;
+            case 'Create-UPI-Order':
+                response = await orderController.createUPIOrder(data);
                 break;
             default:
                 response = { error: 'Unknown operation' };

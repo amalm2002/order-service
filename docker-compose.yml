@@ -1,0 +1,15 @@
+services:
+  order-service:
+    build: .
+    container_name: order-service
+    ports:
+      - "3007:3007"
+    env_file:
+      - .env
+      - .env.docker
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true

@@ -5,7 +5,7 @@ import { IOrder } from '../../models/interfaces/order.interface';
 
 export class OrderRepository implements IOrderRepository {
     async createOrder(order: Partial<IOrder>): Promise<IOrder> {
-        try {
+        try {          
             const newOrder = new OrderModel(order);
             return await newOrder.save();
         } catch (error) {
