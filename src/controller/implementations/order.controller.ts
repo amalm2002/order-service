@@ -22,18 +22,6 @@ export class OrderController implements IOrderController {
         this.service = service;
     }
 
-    // async createOrder(data: CreateOrderDto): Promise<any> {
-    //     return await this.service.createOrder(data);
-    // }
-
-    // async verifyPayment(data: VerifyPaymentDto): Promise<any> {
-    //     return await this.service.verifyPayment(data);
-    // }
-
-    // async placeOrder(data: PlaceOrderDto): Promise<any> {
-    //     return await this.service.placeOrder(data);
-    // }
-
     async getAllRestaurantOrders(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         return await this.service.getAllRestaurantOrder(data);
     }

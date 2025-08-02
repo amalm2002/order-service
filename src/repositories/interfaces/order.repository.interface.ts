@@ -9,7 +9,7 @@ export interface IOrderRepository {
     getOrderDetails(data: { orderId: string }): Promise<any>
     findOrderById(orderId: string): Promise<any>;
     updateOrderStatus(orderId: string, status: string): Promise<any>;
-    updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string }): Promise<any>;
+    updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string, totalDeliveries: number }): Promise<any>;
     removeDeliveryBoy(orderId: string): Promise<any>;
     getOrdersByDeliveryBoyId(deliveryBoyId: string): Promise<{ success: boolean; data?: IOrder[], error?: string }>
 }

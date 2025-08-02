@@ -74,7 +74,7 @@ export class OrderRepository implements IOrderRepository {
         ).lean();
     }
 
-    async updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string }): Promise<any> {
+    async updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string; totalDeliveries:number }): Promise<any> {
         try {
             const updatedOrder = await OrderModel.findOneAndUpdate(
                 { _id: orderId, deliveryBoy: { $exists: false } },

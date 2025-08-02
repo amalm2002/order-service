@@ -13,9 +13,6 @@ import { CompleteDeliveryDto, CompleteDeliveryResponseDto } from '../../dto/comp
 import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from '../../dto/get-delivery-partner-orders.dto';
 
 export interface IOrderController {
-    // createOrder(data: CreateOrderDto): Promise<any>;
-    // verifyPayment(data: VerifyPaymentDto): Promise<any>;
-    // placeOrder(data: PlaceOrderDto): Promise<any>;
     getAllRestaurantOrders(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto>;
     changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto>;
     getUserOrders(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto>;

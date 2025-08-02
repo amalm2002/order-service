@@ -2,11 +2,6 @@
 import { IOrderService } from '../interfaces/order.service.interface';
 import { IOrderRepository } from '../../repositories/interfaces/order.repository.interface';
 import { CreateOrderDTO, CreateOrderResponseDTO } from '../../dto/create.order.dto';
-import { VerifyPaymentDto } from '../../dto/verify-payment.dto';
-import { PlaceOrderDto } from '../../dto/place-order.dto';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
-import { createHash } from 'crypto';
 import { Types } from 'mongoose';
 import { generateOrderPin } from '../../util/order-number.util';
 import { GetAllRestaurantOrdersDto, RestaurantOrderResponseDto } from '../../dto/get-all-restaurant-orders.dto';
@@ -22,194 +17,11 @@ import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from
 
 
 export class OrderService implements IOrderService {
-    // private razorpay: Razorpay;
     private orderRepository: IOrderRepository;
 
     constructor(orderRepository: IOrderRepository) {
         this.orderRepository = orderRepository;
-        // this.razorpay = new Razorpay({
-        //     key_id: process.env.RAZORPAY_KEY_ID || '',
-        //     key_secret: process.env.RAZORPAY_SECRET_ID || '',
-        // });
     }
-
-    // private generateCartHash(cartItems: any[]): string {
-    //     const cartString = JSON.stringify(
-    //         cartItems.map(item => ({
-    //             id: item.id,
-    //             quantity: item.quantity,
-    //             price: item.price,
-    //         })).sort((a, b) => a.id.localeCompare(b.id))
-    //     );
-    //     return createHash('sha256').update(cartString).digest('hex');
-    // }
-
-    // async createOrder(data: CreateOrderDto): Promise<any> {
-    //     try {
-    //         const { amount, userId, cartItems } = data;
-    //         // console.log('create order data is :', data);
-
-    //         const cartHash = this.generateCartHash(cartItems);
-    //         const lockKey = `order:lock:${userId}:${cartHash}`;
-    //         const lockTTL = 30;
-
-    //         const lockAcquired = await redisClient.set(lockKey, 'locked', {
-    //             EX: lockTTL,
-    //             NX: true,
-    //         });
-
-    //         if (!lockAcquired) {
-    //             return { error: 'An order is already being processed for this cart. Please wait a moment and try again.' };
-    //         }
-
-    //         try {
-    //             const payload = {
-    //                 amount: amount * 100,
-    //                 currency: 'INR',
-    //                 receipt: `receipt_${new Date().getTime()}`,
-    //             };
-    //             const rawOrder = await this.razorpay.orders.create(payload);
-    //             return {
-    //                 orderId: rawOrder.id,
-    //                 razorpayKey: process.env.RAZORPAY_KEY_ID,
-    //             };
-    //         } catch (error) {
-    //             await redisClient.del(lockKey);
-    //             throw error;
-    //         }
-    //     } catch (error) {
-    //         console.error('Error in createOrder:', error);
-    //         return { error: `Failed to create order: ${(error as Error).message}` };
-    //     }
-    // }
-
-    // async verifyPayment(data: VerifyPaymentDto): Promise<any> {
-    //     try {
-    //         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderData } = data;
-    //         const razorData = razorpay_order_id + '|' + razorpay_payment_id;
-
-    //         const expectedSignature = crypto
-    //             .createHmac('sha256', process.env.RAZORPAY_SECRET_ID || process.env.VITE_RAZORPAY_SECRET_ID || '')
-    //             .update(razorData.toString())
-    //             .digest('hex');
-
-    //         if (expectedSignature !== razorpay_signature) {
-    //             return { success: false, error: 'Invalid signature' };
-    //         }
-
-    //         const orderItems = orderData.cartItems.map(item => ({
-    //             foodId: new Types.ObjectId(item.id),
-    //             quantity: item.quantity,
-    //             price: item.price,
-    //             restaurantName: item.restaurant,
-    //             restaurantId: item.restaurantId,
-    //             name: item.name,
-    //             description: item.description,
-    //             category: item.category,
-    //             images: item.images,
-    //             hasVariants: item.hasVariants,
-    //             variants: item.variants,
-    //         }));
-
-    //         const addressParts = orderData.address.split(',').map(part => part.trim());
-    //         if (addressParts.length !== 5) {
-    //             throw new Error('Invalid address format');
-    //         }
-
-    //         const [houseName, street, city, state, pinCode] = addressParts;
-
-    //         const address = [{
-    //             houseName,
-    //             street,
-    //             city,
-    //             state,
-    //             pinCode,
-    //         }];
-
-    //         const order = await this.orderRepository.createOrder({
-    //             userId: new Types.ObjectId(orderData.userId),
-    //             items: orderItems,
-    //             address,
-    //             location: orderData.location,
-    //             phoneNumber: orderData.phoneNumber,
-    //             payment: {
-    //                 method: 'UPI',
-    //                 status: 'Success',
-    //                 transactionId: orderData.paymentId,
-    //                 paidAt: new Date(),
-    //             },
-    //             orderStatus: 'Pending',
-    //             orderNumber: generateOrderPin(),
-    //             totalAmount: orderData.total,
-    //         });
-
-    //         const cartHash = this.generateCartHash(orderData.cartItems);
-    //         const lockKey = `order:lock:${orderData.userId}:${cartHash}`;
-    //         await redisClient.del(lockKey);
-
-    //         return { success: true, orderId: order._id };
-    //     } catch (error) {
-    //         const cartHash = this.generateCartHash(data.orderData.cartItems);
-    //         const lockKey = `order:lock:${data.orderData.userId}:${cartHash}`;
-    //         await redisClient.del(lockKey);
-    //         return { success: false, error: `Payment verification failed: ${(error as Error).message}` };
-    //     }
-    // }
-
-    // async placeOrder(data: PlaceOrderDto): Promise<any> {
-    //     try {
-    //         const { orderData } = data;
-    //         // console.log('order data is :', orderData);
-
-    //         const orderItems = orderData.cartItems.map(item => ({
-    //             foodId: new Types.ObjectId(item.id),
-    //             quantity: item.quantity,
-    //             price: item.price,
-    //             restaurantName: item.restaurant,
-    //             restaurantId: item.restaurantId,
-    //             name: item.name,
-    //             description: item.description,
-    //             category: item.category,
-    //             images: item.images,
-    //             hasVariants: item.hasVariants,
-    //             variants: item.variants,
-    //         }));
-
-    //         const addressParts = orderData.address.split(',').map(part => part.trim());
-    //         if (addressParts.length !== 5) {
-    //             throw new Error('Invalid address format');
-    //         }
-
-    //         const [houseName, street, city, state, pinCode] = addressParts;
-
-    //         const address = [{
-    //             houseName,
-    //             street,
-    //             city,
-    //             state,
-    //             pinCode,
-    //         }];
-
-    //         const order = await this.orderRepository.createOrder({
-    //             userId: new Types.ObjectId(orderData.userId),
-    //             items: orderItems,
-    //             address,
-    //             location: orderData.location,
-    //             phoneNumber: orderData.phoneNumber,
-    //             payment: {
-    //                 method: 'Cash',
-    //                 status: 'Pending',
-    //             },
-    //             orderStatus: 'Pending',
-    //             orderNumber: generateOrderPin(),
-    //             totalAmount: orderData.total,
-    //         });
-
-    //         return { success: true, orderId: order._id };
-    //     } catch (error) {
-    //         return { success: false, error: `Order placement failed: ${(error as Error).message}` };
-    //     }
-    // }
 
     async getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         try {
@@ -299,7 +111,7 @@ export class OrderService implements IOrderService {
 
     async updateDeliveryBoy(data: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto> {
         try {
-            const { orderId, deliveryBoyId, deliveryBoyName, mobile, profileImage } = data;
+            const { orderId, deliveryBoyId, deliveryBoyName, mobile, profileImage, totalDeliveries } = data;
             const order = await this.orderRepository.findOrderById(orderId);
 
             if (!order) {
@@ -317,6 +129,7 @@ export class OrderService implements IOrderService {
                 name: deliveryBoyName,
                 mobile,
                 profileImage: profileImage || '',
+                totalDeliveries: totalDeliveries
             });
 
             if (!updatedOrder) {

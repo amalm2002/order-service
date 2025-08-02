@@ -53,7 +53,9 @@ export interface IOrder {
     _id:Types.ObjectId;
     name:string;
     mobile:string;
-    profileImage:string
+    profileImage:string;
+    totalDeliveries?:number;
+    rating?:number
   }
   totalAmount: number;
   createdAt?: Date;

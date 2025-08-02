@@ -4,6 +4,7 @@ export interface UpdateDeliveryBoyDto {
     deliveryBoyName: string;
     mobile: string;
     profileImage?: string
+    totalDeliveries?:number
 }
 
 export interface UpdateDeliveryBoyResponseDto {

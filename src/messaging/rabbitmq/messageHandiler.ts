@@ -17,15 +17,6 @@ export class MessageHandler {
         console.log('Operation:', operation, 'Data:', data);
 
         switch (operation) {
-            // case 'Create-Order':
-            //     response = await orderController.createOrder(data as CreateOrderDto);
-            //     break;
-            // case 'Verify-Payment':
-            //     response = await orderController.verifyPayment(data as VerifyPaymentDto);
-            //     break;
-            // case 'Place-Order':
-            //     response = await orderController.placeOrder(data as PlaceOrderDto);
-            //     break;
             case 'Get-All-Restaurant-Orders':
                 response = await orderController.getAllRestaurantOrders(data);
                 break;

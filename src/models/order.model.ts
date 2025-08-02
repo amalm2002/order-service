@@ -70,7 +70,9 @@ const OrderSchema = new Schema<IOrder>({
     id: { type: Schema.Types.ObjectId, ref: "DeliveryBoy" },
     name: { type: String },
     mobile: { type: String },
-    profileImage: { type: String }
+    profileImage: { type: String },
+    totalDeliveries: { type: Number },
+    rating: { type: Number },
   },
 
   totalAmount: { type: Number, required: true },
