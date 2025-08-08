@@ -5,7 +5,7 @@ import { IOrder } from '../../models/interfaces/order.interface';
 
 export class OrderRepository implements IOrderRepository {
     async createOrder(order: Partial<IOrder>): Promise<IOrder> {
-        try {          
+        try {
             const newOrder = new OrderModel(order);
             return await newOrder.save();
         } catch (error) {
@@ -16,6 +16,14 @@ export class OrderRepository implements IOrderRepository {
     async getOrdersByRestaurantId(restaurantId: string): Promise<IOrder[]> {
         try {
             return await OrderModel.find({ 'items.restaurantId': restaurantId }).sort({ createdAt: -1 });
+        } catch (error) {
+            throw new Error(`Failed to fetch orders: ${(error as Error).message}`);
+        }
+    }
+
+    async getOrdersByRestaurantIdWithFilter(query: any): Promise<IOrder[]> {
+        try {
+            return await OrderModel.find(query).sort({ createdAt: -1 });
         } catch (error) {
             throw new Error(`Failed to fetch orders: ${(error as Error).message}`);
         }
@@ -74,7 +82,7 @@ export class OrderRepository implements IOrderRepository {
         ).lean();
     }
 
-    async updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string; totalDeliveries:number }): Promise<any> {
+    async updateOrderWithDeliveryBoy(orderId: string, deliveryBoy: { id: string; name: string; mobile: string; profileImage: string; totalDeliveries: number }): Promise<any> {
         try {
             const updatedOrder = await OrderModel.findOneAndUpdate(
                 { _id: orderId, deliveryBoy: { $exists: false } },

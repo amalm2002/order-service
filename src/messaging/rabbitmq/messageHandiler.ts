@@ -20,6 +20,9 @@ export class MessageHandler {
             case 'Get-All-Restaurant-Orders':
                 response = await orderController.getAllRestaurantOrders(data);
                 break;
+            case 'Get-Dashboard-Stats':
+                response = await orderController.getDashboardStats(data);
+                break;
             case 'Change-Order-Status':
                 response = await orderController.changeTheOrderStatus(data);
                 break;

@@ -1,8 +1,9 @@
 
+import { Types } from 'mongoose';
+import { format } from 'date-fns';
 import { IOrderService } from '../interfaces/order.service.interface';
 import { IOrderRepository } from '../../repositories/interfaces/order.repository.interface';
 import { CreateOrderDTO, CreateOrderResponseDTO } from '../../dto/create.order.dto';
-import { Types } from 'mongoose';
 import { generateOrderPin } from '../../util/order-number.util';
 import { GetAllRestaurantOrdersDto, RestaurantOrderResponseDto } from '../../dto/get-all-restaurant-orders.dto';
 import { ChangeOrderStatusDto, ChangeOrderStatusResponseDto } from '../../dto/change-order-status.dto';
@@ -14,6 +15,9 @@ import { RemoveDeliveryBoyDto, RemoveDeliveryBoyResponseDto } from '../../dto/re
 import { VerifyOrderNumberDto, VerifyOrderNumberResponseDto } from '../../dto/verify-order-number.dto';
 import { CompleteDeliveryDto, CompleteDeliveryResponseDto } from '../../dto/complete-delivery.dto';
 import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from '../../dto/get-delivery-partner-orders.dto';
+import { DashboardStatsDto, DashboardStatsResponseDto, IOrder } from '../../dto/dashboard-stats.dto';
+import { IOrder as ModelOrder } from "../../models/interfaces/order.interface";
+import { IOrder as DtoOrder } from "../../dto/dashboard-stats.dto";
 
 
 export class OrderService implements IOrderService {
@@ -23,6 +27,112 @@ export class OrderService implements IOrderService {
         this.orderRepository = orderRepository;
     }
 
+    private mapOrderToDto(order: ModelOrder): DtoOrder {
+        return {
+            _id: order._id.toString(),
+            orderId: order.orderId,
+            userId: order.userId.toString(),
+            userName: order.userName,
+            items: order.items.map(item => ({
+                foodId: item.foodId.toString(),
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                category: item.category,
+                description: item.description,
+                images: item.images,
+                hasVariants: item.hasVariants,
+                variants: item.variants || [],
+                restaurantId: item.restaurantId?.toString() || "",
+                restaurantName: item.restaurantName
+            })),
+            address: order.address.map(addr => ({
+                street: addr.street,
+                city: addr.city,
+                state: addr.state,
+                pinCode: addr.pinCode
+            })),
+            phoneNumber: order.phoneNumber,
+            payment: {
+                method: order.payment.method,
+                status: order.payment.status
+            },
+            orderStatus: order.orderStatus,
+            orderNumber: order.orderNumber,
+            totalAmount: order.totalAmount,
+            createdAt: order.createdAt ? order.createdAt.toISOString() : ""
+        };
+    }
+
+
+    private aggregateRevenueData(orders: ModelOrder[], period: string): { name: string; value: number }[] {
+        const dataMap = new Map<string, number>();
+
+        orders.forEach((order) => {
+            const date = new Date(order.createdAt);
+            let key: string;
+
+            switch (period) {
+                case 'weekly':
+                    key = format(date, 'EEE');
+                    break;
+                case 'monthly':
+                    key = format(date, 'MMM dd');
+                    break;
+                case 'yearly':
+                    key = format(date, 'MMM');
+                    break;
+                case 'custom':
+                    key = format(date, 'MMM dd yyyy');
+                    break;
+                default:
+                    key = format(date, 'EEE');
+            }
+
+            dataMap.set(key, (dataMap.get(key) || 0) + order.totalAmount);
+        });
+
+        let result: { name: string; value: number }[];
+        if (period === 'weekly') {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            result = days.map((day) => ({ name: day, value: dataMap.get(day) || 0 }));
+        } else if (period === 'monthly') {
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            result = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = (i + 1).toString().padStart(2, '0');
+                const key = `${format(now, 'MMM')} ${day}`;
+                return { name: key, value: dataMap.get(key) || 0 };
+            });
+        } else if (period === 'yearly') {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            result = months.map((month) => ({ name: month, value: dataMap.get(month) || 0 }));
+        } else {
+            result = Array.from(dataMap, ([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
+            result.sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+        }
+
+        return result;
+    }
+
+    private aggregateTopItems(orders: ModelOrder[]): { name: string; value: number }[] {
+        const itemMap = new Map<string, { name: string; value: number }>();
+
+        orders.forEach((order) => {
+            order.items.forEach((item) => {
+                const current = itemMap.get(item.foodId.toString()) || { name: item.name, value: 0 };
+                itemMap.set(item.foodId.toString(), {
+                    name: item.name,
+                    value: current.value + item.quantity,
+                });
+            });
+        });
+
+        return Array.from(itemMap.values())
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+    }
+
     async getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         try {
             const restaurantId = data.restaurantId
@@ -30,6 +140,63 @@ export class OrderService implements IOrderService {
             return { success: true, data: orders };
         } catch (error) {
             return { success: false, error: `Order fetching failed: ${(error as Error).message}` };
+        }
+    }
+
+    async getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
+        try {
+            const { restaurantId, period, startDate, endDate } = data;
+            let query: any = { 'items.restaurantId': restaurantId };
+
+            if (period === 'custom' && startDate && endDate) {
+                query.createdAt = {
+                    $gte: new Date(startDate),
+                    $lte: new Date(endDate),
+                };
+            } else {
+                const now = new Date();
+                let start: Date;
+                switch (period) {
+                    case 'weekly':
+                        start = new Date(now.setDate(now.getDate() - now.getDay()));
+                        break;
+                    case 'monthly':
+                        start = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                    case 'yearly':
+                        start = new Date(now.getFullYear(), 0, 1);
+                        break;
+                    default:
+                        start = new Date(now.setDate(now.getDate() - now.getDay()));
+                }
+                query.createdAt = { $gte: start, $lte: new Date() };
+            }
+
+            const orders = await this.orderRepository.getOrdersByRestaurantIdWithFilter(query);
+
+            const revenueData = this.aggregateRevenueData(orders, period);
+
+            const topItems = this.aggregateTopItems(orders);
+
+            const totalOrders = orders.length;
+            const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+            const totalProfit = totalSales * 0.3;
+
+            const dtoOrders = orders.map(o => this.mapOrderToDto(o));
+
+            return {
+                success: true,
+                data: {
+                    revenueData,
+                    topItems,
+                    totalOrders,
+                    totalSales,
+                    totalProfit,
+                    recentOrders: dtoOrders.slice(0, 5),
+                },
+            };
+        } catch (error) {
+            return { success: false, error: `Failed to fetch dashboard stats: ${(error as Error).message}` };
         }
     }
 
@@ -278,7 +445,6 @@ export class OrderService implements IOrderService {
 
     async createUPIOrder(data: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
         try {
-            console.log('UPI data :', data);
             const orderItems = data.cartItems.map(item => ({
                 foodId: new Types.ObjectId(item.id),
                 quantity: item.quantity,

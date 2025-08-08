@@ -12,9 +12,13 @@ import { RemoveDeliveryBoyDto, RemoveDeliveryBoyResponseDto } from '../../dto/re
 import { VerifyOrderNumberDto, VerifyOrderNumberResponseDto } from '../../dto/verify-order-number.dto';
 import { CompleteDeliveryDto, CompleteDeliveryResponseDto } from '../../dto/complete-delivery.dto';
 import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from '../../dto/get-delivery-partner-orders.dto';
+import { DashboardStatsDto, DashboardStatsResponseDto } from '../../dto/dashboard-stats.dto';
 
 export interface IOrderService {
     getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto>;
+
+    getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto>;
+    
     changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto>;
     getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto>;
     getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto>;

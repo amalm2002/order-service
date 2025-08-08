@@ -13,6 +13,7 @@ import { RemoveDeliveryBoyDto, RemoveDeliveryBoyResponseDto } from '../../dto/re
 import { VerifyOrderNumberDto, VerifyOrderNumberResponseDto } from '../../dto/verify-order-number.dto';
 import { CompleteDeliveryDto, CompleteDeliveryResponseDto } from '../../dto/complete-delivery.dto';
 import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from '../../dto/get-delivery-partner-orders.dto';
+import { DashboardStatsDto, DashboardStatsResponseDto } from '../../dto/dashboard-stats.dto';
 
 
 export class OrderController implements IOrderController {
@@ -24,6 +25,10 @@ export class OrderController implements IOrderController {
 
     async getAllRestaurantOrders(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         return await this.service.getAllRestaurantOrder(data);
+    }
+
+    async getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
+        return await this.service.getDashboardStats(data);
     }
 
     async changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
