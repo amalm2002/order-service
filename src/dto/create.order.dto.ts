@@ -30,6 +30,7 @@ export interface CartItemDTO {
 
 export class CreateOrderDTO {
     userId: string;
+    userName?: string;
     cartItems: CartItemDTO[];
     subtotal: number;
     deliveryFee: number;

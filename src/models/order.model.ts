@@ -10,6 +10,7 @@ const AddressSchema = new Schema({
 
 const OrderSchema = new Schema<IOrder>({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  userName: { type: String },
   orderNumber: { type: Number, required: true, unique: true },
   orderId: { type: String },
 

@@ -38,6 +38,7 @@ export interface IPayment {
 export interface IOrder {
   _id: Types.ObjectId
   userId: Types.ObjectId;
+  userName:string;
   orderNumber:number;
   orderId: string
   items: IOrderItem[];

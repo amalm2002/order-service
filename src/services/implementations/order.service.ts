@@ -256,6 +256,7 @@ export class OrderService implements IOrderService {
             }];
             const order = await this.orderRepository.createOrder({
                 userId: new Types.ObjectId(data.userId),
+                userName: data.userName,
                 items: orderItems,
                 address,
                 location: data.location,
@@ -309,6 +310,7 @@ export class OrderService implements IOrderService {
 
             const order = await this.orderRepository.createOrder({
                 userId: new Types.ObjectId(data.userId),
+                userName: data.userName,
                 items: orderItems,
                 address,
                 location: data.location,
