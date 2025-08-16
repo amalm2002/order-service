@@ -1,5 +1,6 @@
 export interface GetOrderDetailsDto {
     orderId: string;
+    deliveryBoyId?: string
 }
 
 export interface GetOrderDetailsResponseDto {
@@ -51,5 +52,6 @@ export interface GetOrderDetailsResponseDto {
     };
 
     error?: string
+    message?: string
 }
 

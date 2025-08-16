@@ -22,9 +22,8 @@ export interface IOrderService {
     changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto>;
     getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto>;
     getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto>;
+    getOrderDetail(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto>;
     cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto>;
-    updateDeliveryBoy(data: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto>;
-    removeDeliveryBoy(data: RemoveDeliveryBoyDto): Promise<RemoveDeliveryBoyResponseDto>;
     verifyOrderNumber(data: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto>;
     completeDelivery(data: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto>
     getDeliveryPartnerOrders(data: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto>

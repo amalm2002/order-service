@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package delivery_package;
+
+service DeliveryBoyService {
+  rpc FetchDeliveryBoy(FetchDeliveryBoyRequest) returns (FetchDeliveryBoyResponse);
+  rpc DeliveryBoyUpdate(DeliveryBoyUpdateRequest) returns (DeliveryBoyUpdateResponse);
+}
+
+
+message FetchDeliveryBoyRequest {
+  string deliveryBoyId = 1;
+}
+
+message FetchDeliveryBoyResponse {
+  string message = 1;
+  DeliveryBoy response = 2;
+}
+
+message DeliveryBoy {
+  string _id = 1;
+  string name = 2;
+  string mobile = 3;
+  string status = 4;
+  bool isOnline = 5;
+  bool isActive = 6;
+  bool isVerified = 7;
+  int32 rating = 8;
+  string loginHours = 9;
+  int32 ordersCompleted = 10;
+  int32 monthlyAmount = 11;
+  int32 pendingOrders = 12;
+  int32 inHandCash = 13;
+  string createdAt = 14;
+  string updatedAt = 15;
+  int32 v = 16;
+  string profileImage = 17;
+  string vehicle = 18;
+  int32 amountToPayDeliveryBoy = 19;
+  int32 completeAmount = 20;
+  string lastPaidAt = 21;
+  string nextPaidAt = 22;
+
+  PanCard panCard = 23;
+  License license = 24;
+  BankDetails bankDetails = 25;
+  Location location = 26;
+  Zone zone = 27;
+  Earnings earnings = 28;
+  repeated Review reviews = 29;
+}
+
+
+message PanCard {
+  repeated string images = 1;
+  string number = 2;
+}
+
+message License {
+  repeated string images = 1;
+  string number = 2;
+}
+
+message BankDetails {
+  string accountNumber = 1;
+  string ifscCode = 2;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message Zone {
+  string id = 1;
+  string name = 2;
+}
+
+message Earnings {
+  int32 today = 1;
+  int32 week = 2;
+  repeated int32 history = 3;
+}
+
+message Review {
+  string comment = 1;
+  int32 rating = 2;
+}
+
+
+message DeliveryBoyUpdateRequest {
+  string orderId = 1;
+  string deliveryBoyId = 2;
+}
+
+message DeliveryBoyUpdateResponse {
+  string status = 1;   
+  string message = 2;  
+  DeliveryBoyDetails data = 3;
+}
+
+message DeliveryBoyDetails {
+  string _id = 1;
+  string name = 2;
+  string email = 3;
+  string mobile = 4;
+  int32 rating = 5;
+  bool isOnline = 6;
+  string loginHours = 7;
+  int32 ordersCompleted = 8;
+  int32 pendingOrders = 9;
+  int32 amountToPayDeliveryBoy = 10;
+  int32 inHandCash = 11;
+  Location location = 12;
+  Zone zone = 13;
+  EarningsSimple earnings = 14;
+}
+
+message EarningsSimple {
+  int32 today = 1;
+  int32 week = 2;
+}

@@ -42,17 +42,12 @@ export class OrderController implements IOrderController {
     async getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
         return await this.service.getOrderDetails(data)
     }
+    async getOrderDetail(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+        return await this.service.getOrderDetail(data)
+    }
 
     async cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto> {
         return await this.service.cancelOrder(data)
-    }
-
-    async updateDeliveryBoy(data: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto> {
-        return await this.service.updateDeliveryBoy(data);
-    }
-
-    async removeDeliveryBoy(data: RemoveDeliveryBoyDto): Promise<RemoveDeliveryBoyResponseDto> {
-        return await this.service.removeDeliveryBoy(data);
     }
 
     async verifyOrderNumber(data: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {

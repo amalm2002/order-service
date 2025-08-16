@@ -46,8 +46,8 @@ export default class Consumer {
           this.channel.ack(message);
         } catch (err) {
           console.error('Error handling message:', err);
-          this.channel.nack(message, false, true); 
-          // this.channel.nack(message, false, false); 
+          // this.channel.nack(message, false, true); 
+          this.channel.nack(message, false, false); 
         }
       },
       { noAck: false }

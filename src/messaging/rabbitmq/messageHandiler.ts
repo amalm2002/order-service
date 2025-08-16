@@ -32,14 +32,11 @@ export class MessageHandler {
             case 'Get-Order-Details':
                 response = await orderController.getOrderDetails(data);
                 break;
+            case 'Get-Order-Detail':
+                response = await orderController.getOrderDetail(data);
+                break;
             case 'Cancel-Order':
                 response = await orderController.cancelOrder(data);
-                break;
-            case 'Assign-Delivery-Boy':
-                response = await orderController.updateDeliveryBoy(data);
-                break;
-            case 'Remove-Delivery-Boy':
-                response = await orderController.removeDeliveryBoy(data);
                 break;
             case 'Verify-Order-Number':
                 response = await orderController.verifyOrderNumber(data);

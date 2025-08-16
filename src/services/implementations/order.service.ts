@@ -18,6 +18,10 @@ import { GetDeliveryPartnerOrdersDto, GetDeliveryPartnerOrdersResponseDto } from
 import { DashboardStatsDto, DashboardStatsResponseDto, IOrder } from '../../dto/dashboard-stats.dto';
 import { IOrder as ModelOrder } from "../../models/interfaces/order.interface";
 import { IOrder as DtoOrder } from "../../dto/dashboard-stats.dto";
+import { DeliveryBoyService } from '../../delivery-service-connection/config/delivery.client';
+import { response } from 'express';
+import { resolve } from 'path';
+import { rejects } from 'assert';
 
 
 export class OrderService implements IOrderService {
@@ -225,6 +229,77 @@ export class OrderService implements IOrderService {
         }
     }
 
+    async getOrderDetail(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+        try {
+            const { deliveryBoyId } = data
+
+            const order = await this.orderRepository.getOrderDetails(data)
+
+            if (!order.success || !order.data) {
+                return { success: false, message: 'Order not found' };
+            }
+
+            if (order.data.deliveryBoy?.id) {
+                return { success: false, message: 'Order already assigned to another delivery boy' };
+            }
+
+            const deliveryBoyResponse = await new Promise<{ message: string, response: any }>((resolve, reject) => {
+                DeliveryBoyService.FetchDeliveryBoy({ deliveryBoyId }, (err: any, result: any) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(result);
+                });
+            });
+
+            if (!deliveryBoyResponse.response) {
+                return { success: false, message: 'Delivery boy not found' };
+            }
+
+            const { name, mobile, profileImage, ordersCompleted } = deliveryBoyResponse.response;
+
+            const assignPayload = {
+                orderId: data.orderId,
+                deliveryBoyId,
+                deliveryBoyName: name,
+                mobile,
+                profileImage,
+                totalDeliveries: ordersCompleted
+            };
+
+            const orderAssignResponse = await this.updateDeliveryBoy(assignPayload);
+
+            if (!orderAssignResponse.success) {
+                return { success: false, message: orderAssignResponse.message };
+            }
+
+            const deliveryBoyUpdate = await new Promise<{ message: string, status: string, response: any }>((resolve, reject) => {
+                DeliveryBoyService.DeliveryBoyUpdate({ orderId: data.orderId, deliveryBoyId }, (err: any, result: any) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(result);
+                })
+            })
+
+            console.log('delivery update response :', deliveryBoyUpdate)
+
+            if (deliveryBoyUpdate.status !== 'success') {
+                const rollbackPayload = { orderId: data.orderId, deliveryBoy: null };
+                await this.removeDeliveryBoy(rollbackPayload);
+
+                return { success: false, message: deliveryBoyUpdate.message || 'Failed to update delivery boy' };
+            }
+
+            return {
+                success: true,
+                message: 'Delivery boy assigned successfully',
+            };
+        } catch (error) {
+            return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
+        }
+    }
+
     async cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto> {
         const order = await this.orderRepository.findOrderById(data.orderId);
         if (!order) {
@@ -287,9 +362,6 @@ export class OrderService implements IOrderService {
             if (order.deliveryBoy?.id) {
                 return { success: false, message: 'Order already assigned to another delivery boy' };
             }
-            if (!['Preparing', 'Pending'].includes(order.orderStatus)) {
-                return { success: false, message: 'Order cannot be assigned in current status' };
-            }
 
             const updatedOrder = await this.orderRepository.updateOrderWithDeliveryBoy(orderId, {
                 id: deliveryBoyId.toString(),
@@ -306,6 +378,7 @@ export class OrderService implements IOrderService {
             await this.orderRepository.updateOrderStatus(orderId, 'Accepted');
 
             return { success: true, message: 'Delivery boy assigned successfully' };
+
         } catch (error) {
             console.error('Error in updateDeliveryBoy:', error);
             return { success: false, message: `Failed to assign delivery boy: ${(error as Error).message}` };
