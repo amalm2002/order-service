@@ -16,9 +16,7 @@ import { DashboardStatsDto, DashboardStatsResponseDto } from '../../dto/dashboar
 
 export interface IOrderService {
     getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto>;
-
-    getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto>;
-    
+    getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto>; 
     changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto>;
     getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto>;
     getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto>;
