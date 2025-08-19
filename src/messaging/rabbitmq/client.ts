@@ -4,21 +4,21 @@ import Producer from './producer';
 import rabbitMQConfig from '../../config/rabbitmq.config';
 
 export class RabbitMQClient {
-  private static instance: RabbitMQClient;
-  private isInitialized = false;
-  private producer?: Producer;
-  private consumer?: Consumer;
-  private connection?: Connection;
-  private producerChannel?: Channel;
-  private consumerChannel?: Channel;
+  private static _instance: RabbitMQClient;
+  private _isInitialized = false;
+  private _producer?: Producer;
+  private _consumer?: Consumer;
+  private _connection?: Connection;
+  private _producerChannel?: Channel;
+  private _consumerChannel?: Channel;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance() {
-    if (!this.instance) {
-      this.instance = new RabbitMQClient();
+    if (!this._instance) {
+      this._instance = new RabbitMQClient();
     }
-    return this.instance;
+    return this._instance;
   }
 
   async initializeWithRetry(retries = 5, delay = 1000) {
@@ -36,18 +36,18 @@ export class RabbitMQClient {
   }
 
   async initialize() {
-    if (this.isInitialized) return;
+    if (this._isInitialized) return;
 
-    this.connection = await connect(rabbitMQConfig.rebbitMQ.url);
+    this._connection = await connect(rabbitMQConfig.rebbitMQ.url);
     const [producerChannel, consumerChannel] = await Promise.all([
-      this.connection.createChannel(),
-      this.connection.createChannel(),
+      this._connection.createChannel(),
+      this._connection.createChannel(),
     ]);
 
-    this.producerChannel = producerChannel;
-    this.consumerChannel = consumerChannel;
+    this._producerChannel = producerChannel;
+    this._consumerChannel = consumerChannel;
 
-    const { queue: rpcQueue } = await this.consumerChannel.assertQueue(
+    const { queue: rpcQueue } = await this._consumerChannel.assertQueue(
       rabbitMQConfig.queue.orderServiceQueue,
       {
         durable: true,
@@ -56,18 +56,18 @@ export class RabbitMQClient {
       }
     );
 
-    this.producer = new Producer(this.producerChannel);
-    this.consumer = new Consumer(this.consumerChannel, rpcQueue);
-    this.consumer.consumeMessage();
+    this._producer = new Producer(this._producerChannel);
+    this._consumer = new Consumer(this._consumerChannel, rpcQueue);
+    this._consumer.consumeMessage();
 
-    this.isInitialized = true;
+    this._isInitialized = true;
   }
 
   async produce(data: any, correlationId: string, replyToQueue: string) {
-    if (!this.isInitialized) {
+    if (!this._isInitialized) {
       await this.initializeWithRetry();
     }
-    return await this.producer?.produceMessages(data, correlationId, replyToQueue);
+    return await this._producer?.produceMessages(data, correlationId, replyToQueue);
   }
 }
 

@@ -19,17 +19,14 @@ import { DashboardStatsDto, DashboardStatsResponseDto, IOrder } from '../../dto/
 import { IOrder as ModelOrder } from "../../models/interfaces/order.interface";
 import { IOrder as DtoOrder } from "../../dto/dashboard-stats.dto";
 import { DeliveryBoyService } from '../../delivery-service-connection/config/delivery.client';
-import { response } from 'express';
-import { resolve } from 'path';
-import { rejects } from 'assert';
+
 
 
 export class OrderService implements IOrderService {
-    private orderRepository: IOrderRepository;
 
-    constructor(orderRepository: IOrderRepository) {
-        this.orderRepository = orderRepository;
-    }
+    constructor(
+        private readonly _orderRepository: IOrderRepository
+    ) { }
 
     private mapOrderToDto(order: ModelOrder): DtoOrder {
         return {
@@ -119,7 +116,7 @@ export class OrderService implements IOrderService {
         return result;
     }
 
-    private aggregateTopItems(orders: ModelOrder[]): { name: string; value: number }[] {
+    private _aggregateTopItems(orders: ModelOrder[]): { name: string; value: number }[] {
         const itemMap = new Map<string, { name: string; value: number }>();
 
         orders.forEach((order) => {
@@ -140,7 +137,7 @@ export class OrderService implements IOrderService {
     async getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         try {
             const restaurantId = data.restaurantId
-            const orders = await this.orderRepository.getOrdersByRestaurantId(restaurantId);
+            const orders = await this._orderRepository.getOrdersByRestaurantId(restaurantId);
             return { success: true, data: orders };
         } catch (error) {
             return { success: false, error: `Order fetching failed: ${(error as Error).message}` };
@@ -176,11 +173,11 @@ export class OrderService implements IOrderService {
                 query.createdAt = { $gte: start, $lte: new Date() };
             }
 
-            const orders = await this.orderRepository.getOrdersByRestaurantIdWithFilter(query);
+            const orders = await this._orderRepository.getOrdersByRestaurantIdWithFilter(query);
 
             const revenueData = this.aggregateRevenueData(orders, period);
 
-            const topItems = this.aggregateTopItems(orders);
+            const topItems = this._aggregateTopItems(orders);
 
             const totalOrders = orders.length;
             const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -206,7 +203,7 @@ export class OrderService implements IOrderService {
 
     async changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
         try {
-            const orderStatusResponse = await this.orderRepository.changeTheOrderStatus(data)
+            const orderStatusResponse = await this._orderRepository.changeTheOrderStatus(data)
             return orderStatusResponse
         } catch (error) {
             return { success: false, error: `Order Stauts Change failed: ${(error as Error).message}` };
@@ -215,7 +212,7 @@ export class OrderService implements IOrderService {
 
     async getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
         try {
-            return await this.orderRepository.getUserOrder(data)
+            return await this._orderRepository.getUserOrder(data)
         } catch (error) {
             return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
         }
@@ -223,7 +220,7 @@ export class OrderService implements IOrderService {
 
     async getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
         try {
-            return await this.orderRepository.getOrderDetails(data)
+            return await this._orderRepository.getOrderDetails(data)
         } catch (error) {
             return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
         }
@@ -233,7 +230,7 @@ export class OrderService implements IOrderService {
         try {
             const { deliveryBoyId } = data
 
-            const order = await this.orderRepository.getOrderDetails(data)
+            const order = await this._orderRepository.getOrderDetails(data)
 
             if (!order.success || !order.data) {
                 return { success: false, message: 'Order not found' };
@@ -301,7 +298,7 @@ export class OrderService implements IOrderService {
     }
 
     async cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto> {
-        const order = await this.orderRepository.findOrderById(data.orderId);
+        const order = await this._orderRepository.findOrderById(data.orderId);
         if (!order) {
             return { success: false, message: 'Order not found' };
         }
@@ -312,7 +309,7 @@ export class OrderService implements IOrderService {
             return { success: false, message: 'Order cannot be cancelled' };
         }
 
-        const updatedOrder = await this.orderRepository.updateOrderStatus(data.orderId, 'Cancelled');
+        const updatedOrder = await this._orderRepository.updateOrderStatus(data.orderId, 'Cancelled');
 
         if (!updatedOrder) {
             return { success: false, message: 'Failed to cancel order' };
@@ -354,7 +351,7 @@ export class OrderService implements IOrderService {
     async updateDeliveryBoy(data: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto> {
         try {
             const { orderId, deliveryBoyId, deliveryBoyName, mobile, profileImage, totalDeliveries } = data;
-            const order = await this.orderRepository.findOrderById(orderId);
+            const order = await this._orderRepository.findOrderById(orderId);
 
             if (!order) {
                 return { success: false, message: 'Order not found' };
@@ -363,7 +360,7 @@ export class OrderService implements IOrderService {
                 return { success: false, message: 'Order already assigned to another delivery boy' };
             }
 
-            const updatedOrder = await this.orderRepository.updateOrderWithDeliveryBoy(orderId, {
+            const updatedOrder = await this._orderRepository.updateOrderWithDeliveryBoy(orderId, {
                 id: deliveryBoyId.toString(),
                 name: deliveryBoyName,
                 mobile,
@@ -375,7 +372,7 @@ export class OrderService implements IOrderService {
                 return { success: false, message: 'Failed to assign delivery boy' };
             }
 
-            await this.orderRepository.updateOrderStatus(orderId, 'Accepted');
+            await this._orderRepository.updateOrderStatus(orderId, 'Accepted');
 
             return { success: true, message: 'Delivery boy assigned successfully' };
 
@@ -388,15 +385,15 @@ export class OrderService implements IOrderService {
     async removeDeliveryBoy(data: RemoveDeliveryBoyDto): Promise<RemoveDeliveryBoyResponseDto> {
         try {
             const { orderId } = data;
-            const order = await this.orderRepository.findOrderById(orderId);
+            const order = await this._orderRepository.findOrderById(orderId);
             if (!order) {
                 return { success: false, message: 'Order not found' };
             }
-            const updatedOrder = await this.orderRepository.removeDeliveryBoy(orderId);
+            const updatedOrder = await this._orderRepository.removeDeliveryBoy(orderId);
             if (!updatedOrder) {
                 return { success: false, message: 'Failed to remove delivery boy' };
             }
-            await this.orderRepository.updateOrderStatus(orderId, 'Pending');
+            await this._orderRepository.updateOrderStatus(orderId, 'Pending');
             return { success: true, message: 'Delivery boy removed successfully' };
         } catch (error) {
             console.error('Error in removeDeliveryBoy:', error);
@@ -407,14 +404,14 @@ export class OrderService implements IOrderService {
     async verifyOrderNumber(data: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {
         try {
             const { enteredPin, orderId } = data
-            const order = await this.orderRepository.findOrderById(orderId)
+            const order = await this._orderRepository.findOrderById(orderId)
             if (!order) {
                 return { success: false, message: 'Order not found' };
             }
             const userLocation = order.location
             const convertToNumber = Number(enteredPin)
             if (order.orderNumber === convertToNumber) {
-                await this.orderRepository.updateOrderStatus(orderId, 'Picked')
+                await this._orderRepository.updateOrderStatus(orderId, 'Picked')
                 return { success: true, message: 'PIN verified successfully', location: userLocation, userId: order.userId };
             } else {
                 return { success: false, message: 'Entered PIN does not match the order' };
@@ -429,7 +426,7 @@ export class OrderService implements IOrderService {
     async completeDelivery(data: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto> {
         try {
             const { orderId } = data;
-            const order = await this.orderRepository.findOrderById(orderId);
+            const order = await this._orderRepository.findOrderById(orderId);
 
             if (!order) {
                 return { success: false, message: 'Order not found' };
@@ -443,7 +440,7 @@ export class OrderService implements IOrderService {
                 return { success: false, message: `Order cannot be completed from status: ${order.orderStatus}` };
             }
 
-            const updatedOrder = await this.orderRepository.updateOrderStatus(orderId, 'Delivered');
+            const updatedOrder = await this._orderRepository.updateOrderStatus(orderId, 'Delivered');
 
             if (!updatedOrder) {
                 return { success: false, message: 'Failed to update order status' };
@@ -459,7 +456,7 @@ export class OrderService implements IOrderService {
     async getDeliveryPartnerOrders(data: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto> {
         try {
             const { deliveryBoyId } = data
-            const orders = await this.orderRepository.getOrdersByDeliveryBoyId(deliveryBoyId)
+            const orders = await this._orderRepository.getOrdersByDeliveryBoyId(deliveryBoyId)
             return orders
         } catch (error) {
             console.error('Error in get delivery partner orders:', error);
@@ -494,7 +491,7 @@ export class OrderService implements IOrderService {
                 state,
                 pinCode,
             }];
-            const order = await this.orderRepository.createOrder({
+            const order = await this._orderRepository.createOrder({
                 userId: new Types.ObjectId(data.userId),
                 userName: data.userName,
                 items: orderItems,
@@ -547,7 +544,7 @@ export class OrderService implements IOrderService {
                 pinCode,
             }];
 
-            const order = await this.orderRepository.createOrder({
+            const order = await this._orderRepository.createOrder({
                 userId: new Types.ObjectId(data.userId),
                 userName: data.userName,
                 items: orderItems,
