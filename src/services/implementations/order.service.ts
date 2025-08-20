@@ -136,9 +136,8 @@ export class OrderService implements IOrderService {
 
     async getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         try {
-            const restaurantId = data.restaurantId
-            const orders = await this._orderRepository.getOrdersByRestaurantId(restaurantId);
-            return { success: true, data: orders };
+            const { restaurantId, page = 1, limit = 4 } = data;
+            return await this._orderRepository.getOrdersByRestaurantId({ restaurantId, page, limit });
         } catch (error) {
             return { success: false, error: `Order fetching failed: ${(error as Error).message}` };
         }
@@ -212,7 +211,8 @@ export class OrderService implements IOrderService {
 
     async getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
         try {
-            return await this._orderRepository.getUserOrder(data)
+            const { userId, page = 1, limit = 10 } = data;
+            return await this._orderRepository.getUserOrder({ userId, page, limit });
         } catch (error) {
             return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
         }

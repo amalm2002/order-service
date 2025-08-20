@@ -1,5 +1,7 @@
 export interface GetAllRestaurantOrdersDto {
   restaurantId: string
+  page?: number;
+  limit?: number;
 }
 
 export interface OrderLocationDto {
@@ -50,6 +52,11 @@ export interface OrderAddressDto {
 
 export interface RestaurantOrderResponseDto {
   success: boolean;
-  data?: any;
-  error?: string
+  data?: {
+    orders: any;
+    totalOrders: number;
+    currentPage: number;
+    totalPages: number;
+  };
+  error?: string;
 }

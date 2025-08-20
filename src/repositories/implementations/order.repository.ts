@@ -13,9 +13,40 @@ export class OrderRepository implements IOrderRepository {
         }
     }
 
-    async getOrdersByRestaurantId(restaurantId: string): Promise<IOrder[]> {
+    async getOrdersByRestaurantId(data: {
+        restaurantId: string;
+        page: number;
+        limit: number;
+    }): Promise<{
+        success: boolean;
+        data?: { orders: IOrder[]; totalOrders: number; currentPage: number; totalPages: number };
+        error?: string;
+    }> {
         try {
-            return await OrderModel.find({ 'items.restaurantId': restaurantId }).sort({ createdAt: -1 });
+            const { restaurantId, page = 1, limit = 4 } = data;
+            const skip = (page - 1) * limit;
+
+            const orders = await OrderModel.find({ 'items.restaurantId': restaurantId })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean();
+
+            const totalOrders = await OrderModel.countDocuments({ 'items.restaurantId': restaurantId });
+
+            if (!orders || orders.length === 0) {
+                return { success: false, error: 'No orders found' };
+            }
+
+            return {
+                success: true,
+                data: {
+                    orders,
+                    totalOrders,
+                    currentPage: page,
+                    totalPages: Math.ceil(totalOrders / limit),
+                },
+            };
         } catch (error) {
             throw new Error(`Failed to fetch orders: ${(error as Error).message}`);
         }
@@ -44,16 +75,38 @@ export class OrderRepository implements IOrderRepository {
         }
     }
 
-    async getUserOrder(data: { userId: string; }): Promise<{ success: boolean; data?: IOrder[]; error?: string; }> {
+    async getUserOrder(data: { userId: string; page: number; limit: number }): Promise<{
+        success: boolean;
+        data?: { orders: IOrder[]; totalOrders: number; currentPage: number; totalPages: number };
+        error?: string;
+    }> {
         try {
-            const user_id = data.userId
-            const result = await OrderModel.find({ userId: user_id }).sort({ createdAt: -1 })
-            if (!result) {
-                return { success: false, error: 'Order Is Not Found' }
+            const { userId, page = 1, limit = 10 } = data;
+            const skip = (page - 1) * limit;
+
+            const orders = await OrderModel.find({ userId })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean();
+
+            const totalOrders = await OrderModel.countDocuments({ userId });
+
+            if (!orders || orders.length === 0) {
+                return { success: false, error: 'No orders found' };
             }
-            return { success: true, data: result }
+
+            return {
+                success: true,
+                data: {
+                    orders,
+                    totalOrders,
+                    currentPage: page,
+                    totalPages: Math.ceil(totalOrders / limit),
+                },
+            };
         } catch (error) {
-            throw new Error(`Failed to fetch the user order: ${(error as Error).message}`);
+            throw new Error(`Failed to fetch user orders: ${(error as Error).message}`);
         }
     }
 

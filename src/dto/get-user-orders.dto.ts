@@ -1,9 +1,16 @@
 export interface GetUserOrdersDto {
-    userId: string
+    userId: string;
+    page?: number;
+    limit?: number;
 }
 
 export interface GetUserOrdersResponseDto {
     success?: boolean
     error?: string
-    data?: any
+    data?: {
+        orders: any[]; 
+        totalOrders: number;
+        currentPage: number;
+        totalPages: number;
+    }
 }
