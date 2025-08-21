@@ -18,50 +18,51 @@ export class OrderController implements IOrderController {
         private readonly _orderService: IOrderService
     ) { }
 
-    async getAllRestaurantOrders(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
-        return await this._orderService.getAllRestaurantOrder(data);
+    async getAllRestaurantOrders(restaurantOrdersQuery: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
+        return await this._orderService.getAllRestaurantOrder(restaurantOrdersQuery);
     }
 
-    async getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
-        return await this._orderService.getDashboardStats(data);
+    async getDashboardStats(dashboardStatsQuery: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
+        return await this._orderService.getDashboardStats(dashboardStatsQuery);
     }
 
-    async changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
-        return await this._orderService.changeTheOrderStatus(data)
+    async changeTheOrderStatus(orderStatusUpdate: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
+        return await this._orderService.changeTheOrderStatus(orderStatusUpdate)
     }
 
-    async getUserOrders(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
-        return await this._orderService.getUserOrder(data)
+    async getUserOrders(userOrdersQuery: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
+        return await this._orderService.getUserOrder(userOrdersQuery)
     }
 
-    async getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
-        return await this._orderService.getOrderDetails(data)
-    }
-    async getOrderDetail(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
-        return await this._orderService.getOrderDetail(data)
+    async getOrderDetails(orderDetailsQuery: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+        return await this._orderService.getOrderDetails(orderDetailsQuery)
     }
 
-    async cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto> {
-        return await this._orderService.cancelOrder(data)
+    async getOrderDetail(orderDetailsQuery: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+        return await this._orderService.getOrderDetail(orderDetailsQuery)
     }
 
-    async verifyOrderNumber(data: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {
-        return await this._orderService.verifyOrderNumber(data)
+    async cancelOrder(cancelOrderRequest: CancelOrderDto): Promise<CancelOrderResponseDto> {
+        return await this._orderService.cancelOrder(cancelOrderRequest)
     }
 
-    async completeDelivery(data: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto> {
-        return await this._orderService.completeDelivery(data)
+    async verifyOrderNumber(verifyOrderRequest: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {
+        return await this._orderService.verifyOrderNumber(verifyOrderRequest)
     }
 
-    async getDeliveryPartnerOrders(data: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto> {
-        return await this._orderService.getDeliveryPartnerOrders(data)
+    async completeDelivery(deliveryCompletionRequest: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto> {
+        return await this._orderService.completeDelivery(deliveryCompletionRequest)
     }
 
-    async createCashOnDeliveryOrder(data: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
-        return await this._orderService.createCashOnDeliveryOrder(data);
+    async getDeliveryPartnerOrders(deliveryPartnerOrdersQuery: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto> {
+        return await this._orderService.getDeliveryPartnerOrders(deliveryPartnerOrdersQuery)
     }
 
-    async createUPIOrder(data: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
-        return await this._orderService.createUPIOrder(data)
+    async createCashOnDeliveryOrder(cashOnDeliveryOrder: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
+        return await this._orderService.createCashOnDeliveryOrder(cashOnDeliveryOrder);
+    }
+
+    async createUPIOrder(upiOrder: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
+        return await this._orderService.createUPIOrder(upiOrder)
     }
 }

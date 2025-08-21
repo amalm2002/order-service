@@ -45,5 +45,6 @@ export class CreateOrderDTO {
 export interface CreateOrderResponseDTO {
     success: boolean;
     orderId?: any;
+    orderNumber?:number
     error?: string;
 }

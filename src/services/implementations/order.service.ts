@@ -134,18 +134,18 @@ export class OrderService implements IOrderService {
             .slice(0, 5);
     }
 
-    async getAllRestaurantOrder(data: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
+    async getAllRestaurantOrder(restaurantOrdersQuery: GetAllRestaurantOrdersDto): Promise<RestaurantOrderResponseDto> {
         try {
-            const { restaurantId, page = 1, limit = 4 } = data;
+            const { restaurantId, page = 1, limit = 4 } = restaurantOrdersQuery;
             return await this._orderRepository.getOrdersByRestaurantId({ restaurantId, page, limit });
         } catch (error) {
             return { success: false, error: `Order fetching failed: ${(error as Error).message}` };
         }
     }
 
-    async getDashboardStats(data: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
+    async getDashboardStats(dashboardStatsQuery: DashboardStatsDto): Promise<DashboardStatsResponseDto> {
         try {
-            const { restaurantId, period, startDate, endDate } = data;
+            const { restaurantId, period, startDate, endDate } = dashboardStatsQuery;
             let query: any = { 'items.restaurantId': restaurantId };
 
             if (period === 'custom' && startDate && endDate) {
@@ -200,37 +200,37 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async changeTheOrderStatus(data: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
+    async changeTheOrderStatus(orderStatusUpdate: ChangeOrderStatusDto): Promise<ChangeOrderStatusResponseDto> {
         try {
-            const orderStatusResponse = await this._orderRepository.changeTheOrderStatus(data)
+            const orderStatusResponse = await this._orderRepository.changeTheOrderStatus(orderStatusUpdate)
             return orderStatusResponse
         } catch (error) {
             return { success: false, error: `Order Stauts Change failed: ${(error as Error).message}` };
         }
     }
 
-    async getUserOrder(data: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
+    async getUserOrder(userOrdersQuery: GetUserOrdersDto): Promise<GetUserOrdersResponseDto> {
         try {
-            const { userId, page = 1, limit = 10 } = data;
+            const { userId, page = 1, limit = 10 } = userOrdersQuery;
             return await this._orderRepository.getUserOrder({ userId, page, limit });
         } catch (error) {
             return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
         }
     }
 
-    async getOrderDetails(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+    async getOrderDetails(orderDetailsQuery: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
         try {
-            return await this._orderRepository.getOrderDetails(data)
+            return await this._orderRepository.getOrderDetails(orderDetailsQuery)
         } catch (error) {
             return { success: false, error: `Get User Order failed: ${(error as Error).message}` };
         }
     }
 
-    async getOrderDetail(data: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
+    async getOrderDetail(orderDetailsQuery: GetOrderDetailsDto): Promise<GetOrderDetailsResponseDto> {
         try {
-            const { deliveryBoyId } = data
+            const { deliveryBoyId } = orderDetailsQuery
 
-            const order = await this._orderRepository.getOrderDetails(data)
+            const order = await this._orderRepository.getOrderDetails(orderDetailsQuery)
 
             if (!order.success || !order.data) {
                 return { success: false, message: 'Order not found' };
@@ -256,7 +256,7 @@ export class OrderService implements IOrderService {
             const { name, mobile, profileImage, ordersCompleted } = deliveryBoyResponse.response;
 
             const assignPayload = {
-                orderId: data.orderId,
+                orderId: orderDetailsQuery.orderId,
                 deliveryBoyId,
                 deliveryBoyName: name,
                 mobile,
@@ -271,7 +271,7 @@ export class OrderService implements IOrderService {
             }
 
             const deliveryBoyUpdate = await new Promise<{ message: string, status: string, response: any }>((resolve, reject) => {
-                DeliveryBoyService.DeliveryBoyUpdate({ orderId: data.orderId, deliveryBoyId }, (err: any, result: any) => {
+                DeliveryBoyService.DeliveryBoyUpdate({ orderId: orderDetailsQuery.orderId, deliveryBoyId }, (err: any, result: any) => {
                     if (err) {
                         return reject(err);
                     }
@@ -282,7 +282,7 @@ export class OrderService implements IOrderService {
             console.log('delivery update response :', deliveryBoyUpdate)
 
             if (deliveryBoyUpdate.status !== 'success') {
-                const rollbackPayload = { orderId: data.orderId, deliveryBoy: null };
+                const rollbackPayload = { orderId: orderDetailsQuery.orderId, deliveryBoy: null };
                 await this.removeDeliveryBoy(rollbackPayload);
 
                 return { success: false, message: deliveryBoyUpdate.message || 'Failed to update delivery boy' };
@@ -297,8 +297,8 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async cancelOrder(data: CancelOrderDto): Promise<CancelOrderResponseDto> {
-        const order = await this._orderRepository.findOrderById(data.orderId);
+    async cancelOrder(cancelOrderRequest: CancelOrderDto): Promise<CancelOrderResponseDto> {
+        const order = await this._orderRepository.findOrderById(cancelOrderRequest.orderId);
         if (!order) {
             return { success: false, message: 'Order not found' };
         }
@@ -309,7 +309,7 @@ export class OrderService implements IOrderService {
             return { success: false, message: 'Order cannot be cancelled' };
         }
 
-        const updatedOrder = await this._orderRepository.updateOrderStatus(data.orderId, 'Cancelled');
+        const updatedOrder = await this._orderRepository.updateOrderStatus(cancelOrderRequest.orderId, 'Cancelled');
 
         if (!updatedOrder) {
             return { success: false, message: 'Failed to cancel order' };
@@ -348,9 +348,9 @@ export class OrderService implements IOrderService {
         };
     }
 
-    async updateDeliveryBoy(data: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto> {
+    async updateDeliveryBoy(updateDeliveryBoy: UpdateDeliveryBoyDto): Promise<UpdateDeliveryBoyResponseDto> {
         try {
-            const { orderId, deliveryBoyId, deliveryBoyName, mobile, profileImage, totalDeliveries } = data;
+            const { orderId, deliveryBoyId, deliveryBoyName, mobile, profileImage, totalDeliveries } = updateDeliveryBoy;
             const order = await this._orderRepository.findOrderById(orderId);
 
             if (!order) {
@@ -382,9 +382,9 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async removeDeliveryBoy(data: RemoveDeliveryBoyDto): Promise<RemoveDeliveryBoyResponseDto> {
+    async removeDeliveryBoy(removeDeliveryBoy: RemoveDeliveryBoyDto): Promise<RemoveDeliveryBoyResponseDto> {
         try {
-            const { orderId } = data;
+            const { orderId } = removeDeliveryBoy;
             const order = await this._orderRepository.findOrderById(orderId);
             if (!order) {
                 return { success: false, message: 'Order not found' };
@@ -401,9 +401,9 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async verifyOrderNumber(data: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {
+    async verifyOrderNumber(verifyOrderRequest: VerifyOrderNumberDto): Promise<VerifyOrderNumberResponseDto> {
         try {
-            const { enteredPin, orderId } = data
+            const { enteredPin, orderId } = verifyOrderRequest
             const order = await this._orderRepository.findOrderById(orderId)
             if (!order) {
                 return { success: false, message: 'Order not found' };
@@ -423,9 +423,9 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async completeDelivery(data: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto> {
+    async completeDelivery(deliveryCompletionRequest: CompleteDeliveryDto): Promise<CompleteDeliveryResponseDto> {
         try {
-            const { orderId } = data;
+            const { orderId } = deliveryCompletionRequest;
             const order = await this._orderRepository.findOrderById(orderId);
 
             if (!order) {
@@ -453,9 +453,9 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async getDeliveryPartnerOrders(data: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto> {
+    async getDeliveryPartnerOrders(deliveryPartnerOrdersQuery: GetDeliveryPartnerOrdersDto): Promise<GetDeliveryPartnerOrdersResponseDto> {
         try {
-            const { deliveryBoyId } = data
+            const { deliveryBoyId } = deliveryPartnerOrdersQuery
             const orders = await this._orderRepository.getOrdersByDeliveryBoyId(deliveryBoyId)
             return orders
         } catch (error) {
@@ -464,9 +464,9 @@ export class OrderService implements IOrderService {
         }
     }
 
-    async createCashOnDeliveryOrder(data: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
+    async createCashOnDeliveryOrder(cashOnDeliveryOrder: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
         try {
-            const orderItems = data.cartItems.map(item => ({
+            const orderItems = cashOnDeliveryOrder.cartItems.map(item => ({
                 foodId: new Types.ObjectId(item.id),
                 quantity: item.quantity,
                 price: item.price,
@@ -479,7 +479,7 @@ export class OrderService implements IOrderService {
                 hasVariants: item.hasVariants,
                 variants: item.variants,
             }));
-            const addressParts = data.address.split(',').map(part => part.trim());
+            const addressParts = cashOnDeliveryOrder.address.split(',').map(part => part.trim());
             if (addressParts.length !== 5) {
                 throw new Error('Invalid address format');
             }
@@ -492,30 +492,30 @@ export class OrderService implements IOrderService {
                 pinCode,
             }];
             const order = await this._orderRepository.createOrder({
-                userId: new Types.ObjectId(data.userId),
-                userName: data.userName,
+                userId: new Types.ObjectId(cashOnDeliveryOrder.userId),
+                userName: cashOnDeliveryOrder.userName,
                 items: orderItems,
                 address,
-                location: data.location,
-                phoneNumber: data.phoneNumber,
+                location: cashOnDeliveryOrder.location,
+                phoneNumber: cashOnDeliveryOrder.phoneNumber,
                 payment: {
                     method: 'Cash',
                     status: 'Pending',
                 },
                 orderStatus: 'Pending',
                 orderNumber: generateOrderPin(),
-                totalAmount: data.total,
+                totalAmount: cashOnDeliveryOrder.total,
             });
-            return { success: true, orderId: order._id };
+            return { success: true, orderId: order._id, orderNumber: order.orderNumber };
         } catch (error) {
             console.error('Error creating COD order:', error);
             return { success: false, error: `Order placement failed: ${(error as Error).message}` };
         }
     }
 
-    async createUPIOrder(data: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
+    async createUPIOrder(upiOrder: CreateOrderDTO): Promise<CreateOrderResponseDTO> {
         try {
-            const orderItems = data.cartItems.map(item => ({
+            const orderItems = upiOrder.cartItems.map(item => ({
                 foodId: new Types.ObjectId(item.id),
                 quantity: item.quantity,
                 price: item.price,
@@ -529,7 +529,7 @@ export class OrderService implements IOrderService {
                 variants: item.variants,
             }));
 
-            const addressParts = data.address.split(',').map(part => part.trim());
+            const addressParts = upiOrder.address.split(',').map(part => part.trim());
             if (addressParts.length !== 5) {
                 throw new Error('Invalid address format');
             }
@@ -545,12 +545,12 @@ export class OrderService implements IOrderService {
             }];
 
             const order = await this._orderRepository.createOrder({
-                userId: new Types.ObjectId(data.userId),
-                userName: data.userName,
+                userId: new Types.ObjectId(upiOrder.userId),
+                userName: upiOrder.userName,
                 items: orderItems,
                 address,
-                location: data.location,
-                phoneNumber: data.phoneNumber,
+                location: upiOrder.location,
+                phoneNumber: upiOrder.phoneNumber,
                 payment: {
                     method: 'UPI',
                     status: 'Pending',
@@ -558,9 +558,9 @@ export class OrderService implements IOrderService {
                 },
                 orderStatus: 'Pending',
                 orderNumber: generateOrderPin(),
-                totalAmount: data.total,
+                totalAmount: upiOrder.total,
             });
-            return { success: true, orderId: order._id }
+            return { success: true, orderId: order._id, orderNumber: order.orderNumber }
         } catch (error) {
             console.error('verification side error :', error);
             return { success: false, error: `Payment verification failed: ${(error as Error).message}` };
