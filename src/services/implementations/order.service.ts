@@ -279,8 +279,6 @@ export class OrderService implements IOrderService {
                 })
             })
 
-            console.log('delivery update response :', deliveryBoyUpdate)
-
             if (deliveryBoyUpdate.status !== 'success') {
                 const rollbackPayload = { orderId: orderDetailsQuery.orderId, deliveryBoy: null };
                 await this.removeDeliveryBoy(rollbackPayload);

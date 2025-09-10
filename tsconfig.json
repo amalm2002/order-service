@@ -1,14 +1,3 @@
-// {
-//   "compilerOptions": {
-//     "target": "ES6",
-//     "module": "CommonJS",
-//     "rootDir": "src",
-//     "strict": true,
-//     "esModuleInterop": true
-//   }
-// }
-
-
 {
   "compilerOptions": {
     "outDir": "dist",
@@ -17,6 +6,11 @@
     "module": "commonjs",
     "esModuleInterop": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "src/**/*.proto"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
