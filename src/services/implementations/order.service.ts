@@ -26,8 +26,8 @@ export class OrderService implements IOrderService {
 
     constructor(
         private readonly _orderRepository: IOrderRepository
-    ) { }
-
+    ) {}
+    
     private mapOrderToDto(order: ModelOrder): DtoOrder {
         return {
             _id: order._id.toString(),
